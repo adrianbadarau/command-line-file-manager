@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="exploded-ear" name="Gestionarea sistemului de fișiere:ear exploded">
+    <output-path>$PROJECT_DIR$/out/artifacts/Gestionarea_sistemului_de_fiiere_ear_exploded</output-path>
+    <root id="root">
+      <element id="javaee-facet-resources" facet="Gestionarea sistemului de fișiere/javaeeApplication/javaEEApplication" />
+    </root>
+  </artifact>
+</component>
