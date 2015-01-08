@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -55,21 +56,43 @@ public class Answer {
                         break;
                     case "INFO":
                         String filePath = bufferedReader.readLine();
-                        displayInfo(filePath);
+                        displayInfo(filePath,path);
                         break;
                     case "CREATE_DIR":
+                        System.out.println("Enter directory name: ");
                         String dirName = bufferedReader.readLine();
                         System.out.println("you can choose to add the path for the new directory or just hit enter to" +
                                 " create it in the current directory: "+path);
                         String dirPath = bufferedReader.readLine();
-                        if (dirPath.equals("")){
+                        if (!dirPath.equals("")){
                             createDir(dirName,dirPath);
                         }else {
-                            createDir(dirName);
+                            createDir(dirName,path);
                         }
                         break;
+                    case "DELETE":
+                        System.out.println("Enter file to be deleted, ATTENTION this is Final !!!");
+                        String fileName = bufferedReader.readLine();
+                        deleteFile(fileName,path);
+                        break;
                     case "RENAME":
-                        //
+                        System.out.println("Enter file to be renamed: ");
+                        fileName = bufferedReader.readLine();
+                        System.out.println("Enter new name: ");
+                        String newFileName = bufferedReader.readLine();
+                        renameFile(fileName,newFileName,path);
+                        break;
+                    case "COPY":
+                        System.out.println("Choose file to be copied: ");
+                        fileName = bufferedReader.readLine();
+                        System.out.println("Choose location: ");
+                        String newFilePath = bufferedReader.readLine();
+                        try {
+                            copyFile(fileName,newFilePath,path);
+                        }catch (IOException e){
+                            e.printStackTrace();
+                        }
+                        
                         break;
                     default:
                         System.out.println("Command not recognised, try:");
@@ -82,16 +105,80 @@ public class Answer {
         
     }
 
-    private static void createDir(String dirName, String dirPath) {
-        //
-    }
-    private static void createDir(String dirName){
-        //
-        
+    private static void copyFile(String fileName, String newFilePath, String path) throws IOException{
+        path = sanitizePath(path);
+        newFilePath = sanitizePath(newFilePath);
+        Path oldFile = Paths.get(path+fileName);
+        Path newFile = Paths.get(path+newFilePath+fileName);
+        if (!Files.exists(oldFile)){
+            System.out.println("Can't copy the file because it does not exist");
+            return;
+        }else if (Files.exists(newFile)){
+            System.out.println("Can't copy file because there is another file with that name");
+            return;
+        }else if (!(Files.isDirectory(newFile.getParent()))){
+            System.out.println("Can't copy file because the directory does not exist");
+            return;
+        }else {
+            Files.copy(oldFile,newFile);
+            System.out.println("File copied successfully");
+            return;
+        }
     }
 
-    private static void displayInfo(String filePath) {
-        //
+    private static void renameFile(String fileName, String newFileName, String path) {
+        path = sanitizePath(path);
+        File oldFile = new File(path+fileName);
+        File newFile = new File(path+newFileName);
+        if (!oldFile.exists()){
+            System.out.println("Can't rename the file because it does not exist");
+            return;
+        }else if (newFile.exists()){
+            System.out.println("Can't rename file because there is another file with that name");
+            return;
+        }else if (oldFile.renameTo(newFile)){
+            System.out.println("File renamed successfully");
+            return;
+        }else {
+            System.out.println("File rename failed");
+        }
+    }
+
+    private static void deleteFile(String fileName, String path) {
+        path = sanitizePath(path);
+        File file = new File(path+fileName);
+        if (file.exists()){
+            file.delete();
+            System.out.println("File"+fileName+"successfully deleted");
+        }else{
+            System.out.println("Can't delete file:"+fileName+"because it doesn't exist");
+        }
+    }
+
+    private static void createDir(String dirName, String dirPath) {
+        dirPath = sanitizePath(dirPath);
+        File newDir = new File(dirPath+dirName);
+        if (!newDir.exists()||!newDir.isDirectory()){
+            newDir.mkdir();
+            System.out.println("Created new directory: "+newDir.getName()+" here: "+newDir.getPath());
+        }else {
+            System.out.println("Sorry but the directory already exists");
+        }
+    }
+
+    private static void displayInfo(String fileName,String rootPath) {
+        rootPath = sanitizePath(rootPath);
+        File file = new File(rootPath+fileName);
+        if (file.exists()){
+            System.out.println("||"+file.getName()+"||"+showType(file)+"||"+file.getPath()+"||"+file.length()
+                    +"||"+getCreationDate(file)+"||"+getLastModifiedDate(file)+"||");
+        }
+    }
+    private static void displayInfo(File file) {
+        if (file.exists()){
+            System.out.println("||"+file.getName()+"||"+showType(file)+"||"+file.getPath()+"||"+file.length()
+                    +"||"+getCreationDate(file)+"||"+getLastModifiedDate(file)+"||");
+        }
     }
 
     private static void displayCommands() {
@@ -115,8 +202,7 @@ public class Answer {
         System.out.println("||    NUME     ||    TIP    ||    CALE    ||    DIMENSIUNE    ||    DATA CREARII    " +
                 "||    DATA ULTIMEI MODIFICARI    ||");
         for (File file:files){
-            System.out.println("||"+file.getName()+"||"+showType(file)+"||"+file.getPath()+"||"+file.length()
-                    +"||"+getCreationDate(file)+"||"+getLastModifiedDate(file)+"||");
+            displayInfo(file);
         }
     }
 
@@ -154,10 +240,17 @@ public class Answer {
         if (file.isDirectory()){
             return "DIRECTORY";
         }else if (file.isFile()){
-            return "FISIER";
+            return "FILE";
         }else {
-            return "NECUNOSCUT";
+            return "UNKNOWN";
         }
+    }
+    
+    private static String sanitizePath(String path){
+        if (!path.endsWith("/")){
+            path = path+"/";
+        }
+        return path;
     }
 }
 //0348426009
