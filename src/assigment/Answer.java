@@ -94,6 +94,18 @@ public class Answer {
                         }
                         
                         break;
+                    case "MOVE":
+                        System.out.println("Choose file to be moved: ");
+                        fileName = bufferedReader.readLine();
+                        System.out.println("Choose location: ");
+                        String newFilePath1 = bufferedReader.readLine();
+                        try {
+                            moveFile(fileName,newFilePath1,path);
+                        }catch (IOException e){
+                            e.printStackTrace();
+                        }
+
+                        break;
                     default:
                         System.out.println("Command not recognised, try:");
                         displayCommands();
@@ -122,6 +134,28 @@ public class Answer {
         }else {
             Files.copy(oldFile,newFile);
             System.out.println("File copied successfully");
+            return;
+        }
+    }
+    private static void moveFile(String fileName, String newFilePath, String path) throws IOException{
+        path = sanitizePath(path);
+        newFilePath = sanitizePath(newFilePath);
+        Path oldFile = Paths.get(path+fileName);
+        Path newFile = Paths.get(path+newFilePath+fileName);
+        if (!Files.exists(oldFile)){
+            System.out.println("Can't move the file because it does not exist");
+            return;
+        }else if (Files.exists(newFile)){
+            System.out.println("Can't move file because there is another file with that name");
+            return;
+        }else if (!(Files.isDirectory(newFile.getParent()))){
+            System.out.println("Can't move file because the directory does not exist");
+            return;
+        }else {
+            Files.copy(oldFile,newFile);
+            File tmp = new File(oldFile.toString());
+            tmp.delete();
+            System.out.println("File moved successfully");
             return;
         }
     }
